@@ -16,7 +16,7 @@ class App(object):
         self.i_filename = args.input_file
         self.ped_filename = args.ped_file if args.ped_file else os.path.join(os.path.dirname(self.i_filename), "project.ped")
         self.reheader_filename = args.reheader_file if args.reheader_file else os.path.join(os.path.dirname(self.i_filename), "reheader.txt")
-        self.sets_path = args.set_path if args.set_path else os.path.dirname(self.i_filename)
+        self.sets_filename = args.sets_file if args.sets_file else os.path.join(os.path.dirname(self.i_filename), "sets.tsv")
 
     def get_input_data(self, filename):
         self.logger.info("Reading {}".format(self.i_filename))
@@ -36,6 +36,7 @@ class App(object):
             return next(item['Bika_id'] for item in family if item["Family_relationship"].lower() in relationship)
 
     def create_ped(self, ped_filename, input_data):
+        self.logger.info("Creating ped file {}".format(ped_filename))
         ped = csv.DictWriter(open(ped_filename, 'w'),delimiter=' ',fieldnames=['fam_id', 'sample_id', 'father_id','mother_id', 'gender', 'status'])
         ped_list = list()
         families = self.groupby(input_data, 'Family_id')
@@ -54,6 +55,7 @@ class App(object):
         return ped_list
 
     def create_reheader(self, reheader_filename, input_data):
+        self.logger.info("Creating reheader file {}".format(reheader_filename))
         reheader = csv.DictWriter(open(reheader_filename, 'w'),delimiter=' ',fieldnames=['bika_id', 'client_id'])
         reheader_list = list()
         for row in input_data:
@@ -62,15 +64,16 @@ class App(object):
             reheader_list.append(reheader_dict)
         return reheader_list
 
-    def create_sets(self, sets_path, ped_data):
+    def create_sets(self, sets_filename, ped_data):
+        self.logger.info("Creating sets file {}".format(sets_filename))
         families = self.groupby(ped_data, 'fam_id')
-        for family in families:
-            fam_id = family[0].get('fam_id')
-            filename = os.path.join(sets_path, "Set_{}.args".format(fam_id))
-            with open(filename, 'w') as h:
-                for person in family:
-                    h.write("{}\n".format(person.get('sample_id')))
-    
+        with open(sets_filename, 'w') as h:
+            h.write("set\tsample\n")
+            for family in families:
+                fam_id = family[0].get('fam_id')
+                ids = [ person.get('sample_id') for person in family ]
+                h.write("{}\t{}\n".format(fam_id, ",".join(ids)))
+
     def run(self):
         input_data = self.get_input_data(filename=self.i_filename)
 
@@ -78,7 +81,7 @@ class App(object):
 
         reheader = self.create_reheader(reheader_filename=self.reheader_filename, input_data=input_data)
 
-        self.create_sets(sets_path=self.sets_path, ped_data=ped)
+        self.create_sets(sets_filename=self.sets_filename, ped_data=ped)
 
 
 def get_logger(name, level="WARNING", filename=None, mode="a"):
@@ -113,8 +116,8 @@ def make_parser():
     parser.add_argument('--reheader_file', '-r', metavar="PATH",
                         help="reheader file (output)")
 
-    parser.add_argument('--set_path', '-s', metavar="PATH",
-                        help="destination path for set files")
+    parser.add_argument('--sets_file', '-s', metavar="PATH",
+                        help="set files (output")
 
     return parser
 
