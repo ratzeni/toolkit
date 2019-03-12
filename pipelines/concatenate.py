@@ -2,13 +2,11 @@
 
 import os
 import sys
-import shlex, subprocess
+import subprocess
 import argparse
 subprocess.run("pip install oyaml", shell=True)
 import oyaml as yaml
 import logging
-
-
 
 
 class App(object):
@@ -29,8 +27,7 @@ class App(object):
             self.logger.info("Creating folder {}".format(self.folder))
             os.mkdir(self.folder)
 
-
-    def get_read_pair(self,s):
+    def get_read_pair(self, s):
         #self.logger.info("Reading {}".format(self.input_file))
         basename = s.split('/')[-1]
         read = basename.split('_')[3]
@@ -38,7 +35,6 @@ class App(object):
             return read
         else:
             sys.exit()
-
 
     def run(self):
         self.logger.info("Reading input file: {}".format(self.input_file))
@@ -83,7 +79,9 @@ class App(object):
             self.logger.info("Writing configfile: {}".format(yaml_project))
             with open(yaml_project, "w") as outfile:
                 yaml.dump(new_data, outfile, indent=4)
-        if self.merge: self.logger.info("Skipping configfile generation: --merge_only mode activated")
+        if self.merge:
+            self.logger.info("Skipping configfile generation: --merge_only mode activated")
+
 
 def get_logger(name, level="WARNING", filename=None, mode="a"):
     log_format = '%(asctime)s|%(levelname)-8s|%(name)s |%(message)s'
@@ -103,7 +101,6 @@ def get_logger(name, level="WARNING", filename=None, mode="a"):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-
 
 
 def make_parser():
@@ -130,7 +127,6 @@ def make_parser():
     parser.add_argument('--paired', action='store_true',
                         help="Activate paired end mode (Default: FALSE)")
 
-
     return parser
 
 
@@ -144,7 +140,6 @@ def main(argv):
 
     workflow.run()
 
-#################################################à
 
 if __name__ == '__main__':
     main(sys.argv[1:])
