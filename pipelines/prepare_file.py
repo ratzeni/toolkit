@@ -58,6 +58,7 @@ class App(object):
         self.logger.info("Creating reheader file {}".format(reheader_filename))
         reheader = csv.DictWriter(open(reheader_filename, 'w'),delimiter=' ',fieldnames=['bika_id', 'client_id'])
         reheader_list = list()
+        reheader.writeheader()
         for row in input_data:
             reheader_dict = dict(bika_id=row.get('Bika_id'),client_id=row.get('Client_id').replace(" ","_"))
             reheader.writerow(reheader_dict)
